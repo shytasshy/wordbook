@@ -319,7 +319,7 @@ class WordbookdemoFrame(tk.Frame):
         self.tree.heading(5,text="タグ")
         self.tree.heading(6,text="意味")
 
-        self.tree.bind("<Double-1>",lambda event:self.gotoDescriptionFrame(event,wordbook))
+        self.tree.bind("<Double-1>",lambda event:self.gotoDescriptionFrame(event,csv_file,wordbook))
 
 
         wordlist = wordbook.get_info()
@@ -330,12 +330,12 @@ class WordbookdemoFrame(tk.Frame):
                 self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:31][:-1]+"..."))  #30文字以上の表記省略        
         self.tree.place(relwidth=0.95,relx=0.025,rely=0.11,height = 700)
 
-    def gotoDescriptionFrame(self,event,wordbook):
+    def gotoDescriptionFrame(self,event,csv_file,wordbook):
         item = self.tree.selection()[0]
         print(self.tree.item(item,"value")[0])
         for word in wordbook:
             if self.tree.item(item,'value')[0] == str(word.id):
-                temp = DescriptionFrameBase(word)
+                temp = DescriptionFrameBase(csv_file,wordbook,word)
                 temp.update()
 
 
@@ -413,15 +413,15 @@ class RegisterwordFrame(tk.Frame):
         #reload
 
 class DescriptionFrameBase(tk.Tk):
-    def __init__(self,word):
+    def __init__(self,csv_file,wordbook,word):
         tk.Tk.__init__(self)
         self.geometry("800x600")
-        self.frame = DescriptionPageFrame(self,word)
+        self.frame = DescriptionPageFrame(self,csv_file,wordbook,word)
         self.frame.pack(expand = True,fill="both")
 
 class DescriptionPageFrame(tk.Frame):
 
-    def __init__(self,master = None,word=None):
+    def __init__(self,master = None,csv_file = None, wordbook = None, word=None):
         tk.Frame.__init__(self,master)
         self.tree = ttk.Treeview(self)
         self.tree["columns"]=(1,2,3,4,5)
@@ -438,9 +438,15 @@ class DescriptionPageFrame(tk.Frame):
         self.tree.heading(4,text="ジャンル")
         self.tree.heading(5,text="タグ")
         self.tree.insert("","end",values=(word.id,word.word,word.read,word.genre,word.tag_list))
-        self.tree.place(relwidth=0.8,relx=0.1,rely=0.1)
-        self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.destroy())
+        self.tree.place(relwidth=0.8,relx=0.1,rely=0.1,relheight =0.08)
+        self.return_button = tk.Button(self,text = "戻る", command = lambda:self.master.destroy())
         self.return_button.place(relwidth=0.35,relx=0.3,rely=0.9)
+        self.update_button = tk.Button(self,text = "更新", command = lambda:self.update(self,csv_file,wordbook,word))
+        self.update_button.place(relwidth=0.35,relx=0.3,rely=0.7)
+
+
+    def update(self, master = None, csv_file = None, wordbook = None, word = None):
+        wordbook.show_info()
 
 root = FrameBase()
 root.mainloop()
