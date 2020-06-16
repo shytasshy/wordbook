@@ -2,11 +2,14 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.font as font
+from PIL import Image,ImageTk
 import pandas as pd
 import sys
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import sip
+
+#間違ったフラグ、復習したいフラグを立てる
 
 """
 #------awsログイン～S3上のtxt取得------
@@ -37,45 +40,45 @@ def update_csv(csv_file, wordbook, csv_name):
     new_count = 0 #複数新規追加時に被らない命名をするための識別子
     for word in wordbook:
         a = int(word.id)
-        if(word.nudflag==1):
+        if(word.proc_flag==1):
             new_count += 1
             csv_file.loc["new"+str(new_count)]=[str(word.id),word.word,word.read,word.genre," ".join(word.tag_list),word.description]
-            word.nudflag = 0
+            word.proc_flag = 0
             #print(csv_file)
-        if(word.nudflag==2):
+        if(word.proc_flag==2):
             csv_column=csv_file.query("id==@a").index[0] #idが一致するcsv行名
             csv_file.loc[csv_column]=[str(word.id),word.word,word.read,word.genre," ".join(word.tag_list),word.description]
            # print(csv_file)
-            word.nudflag = 0
-        if(word.nudflag==3):
+            word.proc_flag = 0
+        if(word.proc_flag==3):
             csv_column=csv_file.query("id==@a").index[0] #idが一致するcsv行名
             csv_file.drop(index = csv_column,inplace=True)
             print(csv_file)
-            word.nudflag = 0
+            word.proc_flag = 0
     csv_file.to_csv(csv_name,index=False)
     csv_file, wordbook = read_csv_clear_wordbook(csv_name)
     return csv_file,wordbook
 
 def clear_flag(wordbook):#wordbookの変更キャンセル    
     for word in wordbook:
-        word.nudflag = 0
+        word.proc_flag = 0
     return wordbook
 
 #------WordとWordbook------
 
 class Word:
 
-    def __init__(self, id=0, word="", read="", genre="", tag="", description="", nudflag=0):
+    def __init__(self, id=0, word="", read="", genre="", tag="", description="", proc_flag=0):
         self.id=int(id)
         self.word=word
         self.read=read
         self.genre=genre
         self.tag_list=tag.split(' ')
         self.description=description
-        self.nudflag=nudflag
+        self.proc_flag=proc_flag
 
     def show_info(self):
-        print("ID:"+str(self.id),"Word:"+self.word,"Read:"+self.read,"Genre:"+self.genre,"tag:"+str(self.tag_list),"Desc:"+self.description,"flag:"+str(self.nudflag))
+        print("ID:"+str(self.id),"Word:"+self.word,"Read:"+self.read,"Genre:"+self.genre,"tag:"+str(self.tag_list),"Desc:"+self.description,"flag:"+str(self.proc_flag))
 
     def get_info(self):
         return [str(self.id),self.word,self.read,self.genre,self.tag_list,self.description]
@@ -94,7 +97,7 @@ class Wordbook(list):
         return info_list
 
     def search(self, search_flag=0, target=""):
-        #search_flagが0:id 1:word or read 2:genre 3:tag
+        #search_flagが0:id 1:word or read 2:genre 3:tag 100:全部
         hit_word = []
         if search_flag==0:
             for i in self:
@@ -114,10 +117,22 @@ class Wordbook(list):
                     hit_word.append(i.get_info())
         elif search_flag == 3:
             for i in self:
+                #tag_listを1次元にしてから検索(スマートにしたい)
+                flat_tag_list = ""
                 for j in i.tag_list:
-                    if target in j:
-                        #i.show_info()
-                        hit_word.append(i.get_info())
+                    flat_tag_list += " " + j
+                if target in flat_tag_list:
+                    #i.show_info()
+                    hit_word.append(i.get_info())
+
+        elif search_flag == 100:
+            for i in self:
+                #tag_listを1次元にしてから検索(スマートにしたい)
+                flat_tag_list = ""
+                for j in i.tag_list:
+                    flat_tag_list += " " + j
+                if i.id == str(target) or target in i.word or target in i.read or target in i.genre or target in flat_tag_list:
+                    hit_word.append(i.get_info())
         return hit_word
 
     def search_test(self, search_flag=0, target=""):
@@ -157,7 +172,7 @@ class Wordbook(list):
     def update_word(self, up_id=0, up_word="", up_read="", up_genre="", up_tag="", up_description=""):
         for word in self:
             if word.id == up_id:
-                word.nudflag=2
+                word.proc_flag=2
                 if (up_word!=""):
                     word.word=up_word
                 if(up_read!=""):
@@ -174,13 +189,13 @@ class Wordbook(list):
     def del_word(self, del_id=0):
         for word in self:
             if word.id == del_id:
-                word.nudflag = 3
+                word.proc_flag = 3
                 return
         print("削除エラー：該当のIDが存在しません！")
 
-    def clear_nudflag(self):
+    def clear_proc_flag(self):
         for word in self:
-            word.nudflag=0
+            word.proc_flag=0
 
 
 #------csv読み込んでwordbookに入れる------
@@ -203,7 +218,7 @@ def read_csv_clear_wordbook(csv_name):
 wordbook.del_word(1)
 wordbook.new_word(word="hogehoge", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
 wordbook.new_word(word="hogehoge2", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
-#wordbook.clear_nudflag()
+#wordbook.clear_proc_flag()
 csv_file, wordbook = update_csv(csv_file,wordbook)
 wordbook.update_word(up_id=1,up_word="ieeeeeeeeei")
 wordbook.new_word(word="hogehoge3", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
@@ -220,15 +235,19 @@ class FrameBase(tk.Tk):
         self.frame = StartPageFrame(self)
         self.frame.pack(expand = True,fill="both")
 
-    def change(self, frame, csv_file, wordbook):
+    def change(self, frame, csv_file=None, wordbook=None):
         self.frame.pack_forget()
         self.frame = frame(self, csv_file, wordbook)
         self.frame.pack(expand = True,fill="both")
 
+    def change_startpage(self):
+        self.frame.pack_forget()
+        self.frame = StartPageFrame(self)
+        self.frame.pack(expand = True, fill = "both")
 
 class StartPageFrame(tk.Frame):
 
-    def __init__(self,master = None,**kwargs):
+    def __init__(self,master = None, csv_file = None, wordbook = None,**kwargs):
 
         tk.Frame.__init__(self,master,**kwargs)
         master.title("単語帳アプリ")
@@ -260,7 +279,8 @@ class WordbookdemoFrame(tk.Frame):
         tk.Frame.__init__(self,master,**kwargs)
         #ウィジェット宣言
         self.my_font = font.Font(master,family="Meiryo UI",size = 9)
-        self.apimage = tk.PhotoImage(file="./apimage.png")
+        self.apimagecanvas = tk.Canvas(self,width=140,height=50)
+        self.apimage = tk.PhotoImage(file="./image/logo.png")
         self.tree = ttk.Treeview(self)
         self.search_button = tk.Button(self,text = "検索",font = self.my_font, command = lambda:self.search(master,csv_file, wordbook))
         self.return_button = tk.Button(self,text = "戻る",font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook))
@@ -272,11 +292,13 @@ class WordbookdemoFrame(tk.Frame):
 
     def reload(self, master = None, csv_file = None, wordbook = None, **kwargs):    
         #ウィジェット配置
-        self.apimage.place(relwidth=0.1,relx = 0.025,rely = 0.01)
+        self.apimagecanvas.place(relx=0.023,rely=0.002)
+        self.apimagecanvas.create_image(0, 0, image=self.apimage, anchor=tk.NW)
+        self.apimagecanvas.bind("<Button-1>", lambda event:self.master.change_startpage())
         self.return_button.place_forget()
-        self.search_button.place(relwidth=0.05,relx=0.825,rely=0.11)
-        self.textbox.place(relwidth=0.69,relx=0.13,rely = 0.115)
-        self.register_button.place(relwidth=0.1,relx=0.025,rely = 0.11)
+        self.search_button.place(relwidth=0.05,relx=0.825,rely=0.072)
+        self.textbox.place(relwidth=0.69,relx=0.13,rely = 0.077)
+        self.register_button.place(relwidth=0.1,relx=0.025,rely = 0.072)
         master.title("単語一覧")
         self.tree.place_forget()
         self.tree = ttk.Treeview(self)
@@ -297,7 +319,7 @@ class WordbookdemoFrame(tk.Frame):
         self.tree.heading(5,text="タグ")
         self.tree.heading(6,text="意味")
 
-        self.tree.bind("<Double-1>",lambda event:self.TreeDoubleClick(event,wordbook))
+        self.tree.bind("<Double-1>",lambda event:self.gotoDescriptionFrame(event,wordbook))
 
 
         wordlist = wordbook.get_info()
@@ -305,16 +327,16 @@ class WordbookdemoFrame(tk.Frame):
             if(len(row[5])<30):
                 self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:30]))
             else:
-                self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:31][:-1]+"..."))                
-        self.tree.place(relwidth=0.95,relx=0.025,rely=0.15,height = 600)
+                self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:31][:-1]+"..."))  #30文字以上の表記省略        
+        self.tree.place(relwidth=0.95,relx=0.025,rely=0.11,height = 700)
 
-    def TreeDoubleClick(self,event,wordbook):
+    def gotoDescriptionFrame(self,event,wordbook):
         item = self.tree.selection()[0]
         print(self.tree.item(item,"value")[0])
         for word in wordbook:
             if self.tree.item(item,'value')[0] == str(word.id):
                 temp = DescriptionFrameBase(word)
-                temp.mainloop()
+                temp.update()
 
 
     def search(self, master = None, csv_file=None, wordbook = None):
@@ -339,12 +361,12 @@ class WordbookdemoFrame(tk.Frame):
         self.tree.heading(5,text="タグ")
         self.tree.heading(6,text="意味")
 
-        for row in wordbook.search(1,self.textbox.get()):
+        for row in wordbook.search(100,self.textbox.get()):
             if(len(row[5])<30):
                 self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:30]))
             else:
                 self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:31][:-1]+"...")) 
-        self.tree.place(relwidth=0.95,relx=0.025,rely=0.05,height = 600)
+        self.tree.place(relwidth=0.95,relx=0.025,rely=0.11,height = 700)
 
     def register_clicked(self):
         csv_name = "./wordlist.csv"
@@ -401,6 +423,7 @@ class DescriptionPageFrame(tk.Frame):
 
     def __init__(self,master = None,word=None):
         tk.Frame.__init__(self,master)
+        self.tree = ttk.Treeview(self)
         self.tree["columns"]=(1,2,3,4,5)
         self.tree["show"]="headings"
         self.tree.column(1,width=50)
