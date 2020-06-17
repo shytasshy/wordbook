@@ -1,6 +1,18 @@
 id,word,read,genre,tag,description
-1,w1,r1,g1,t11 t12,d1
-2,w2,r2,g2,t21 t22,d2
-3,w3,r3,g3,t31 t32,d3
-4,w4,r4,g4,t41 t42,d4
-5,w5,r5,g5,t51 t52,d5
+1,w1,r1,g1,t11 t12 t13,"d1
+
+
+"
+2,w2,r2,g2,t21 t22,"d2
+"
+3,w3,r3,g3,t31 t32 t33,"testtesttesttesttesttest
+
+"
+4,w4,r4,g4,t41 t42,"d4
+
+"
+5,w5,r5,g5,t51 t52,"d5
+
+
+
+"

@@ -46,11 +46,12 @@ def update_csv(csv_file, wordbook, csv_name):
             word.proc_flag = 0
             #print(csv_file)
         if(word.proc_flag==2):
+            print(csv_file)
             csv_column=csv_file.query("id==@a").index[0] #idが一致するcsv行名
-            csv_file.loc[csv_column]=[str(word.id),word.word,word.read,word.genre," ".join(word.tag_list),word.description]
-           # print(csv_file)
+            csv_file.loc[csv_column]=[word.id,word.word,word.read,word.genre," ".join(word.tag_list),word.description]
             word.proc_flag = 0
         if(word.proc_flag==3):
+            print("ccc")
             csv_column=csv_file.query("id==@a").index[0] #idが一致するcsv行名
             csv_file.drop(index = csv_column,inplace=True)
             print(csv_file)
@@ -180,7 +181,7 @@ class Wordbook(list):
                 if(up_genre!=""):
                     word.genre=up_genre
                 if(up_tag!=""):
-                    word.tag_list=uptag.split(" ")
+                    word.tag_list=up_tag.split(" ")
                 if(up_description!=""):
                     word.description=up_description
                 return
@@ -208,22 +209,6 @@ def read_csv_clear_wordbook(csv_name):
         word = Word(val[0],val[1],val[2],val[3],val[4],val[5])
         wordbook.append(word)
     return csv_file,wordbook
-
-
-
-"""
-#いろいろテスト
-#気を付けること
-#delの後に更新をかけることができ、その場合削除されない
-wordbook.del_word(1)
-wordbook.new_word(word="hogehoge", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
-wordbook.new_word(word="hogehoge2", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
-#wordbook.clear_proc_flag()
-csv_file, wordbook = update_csv(csv_file,wordbook)
-wordbook.update_word(up_id=1,up_word="ieeeeeeeeei")
-wordbook.new_word(word="hogehoge3", read="hoho", genre="gege", tag="hoge hoge", description="hogehoge")
-csv_file, wordbook = update_csv(csv_file,wordbook)
-"""
 
 
 #GUI作っていこう
@@ -284,6 +269,7 @@ class WordbookdemoFrame(tk.Frame):
         self.tree = ttk.Treeview(self)
         self.search_button = tk.Button(self,text = "検索",font = self.my_font, command = lambda:self.search(master,csv_file, wordbook))
         self.return_button = tk.Button(self,text = "戻る",font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook))
+        self.reload_button = tk.Button(self, text = "再読み込み", font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook))
         self.register_button = tk.Button(self,text = "新規単語登録",font = self.my_font, command = self.register_clicked)
         self.textbox = tk.Entry(font = self.my_font)
         #reload
@@ -299,6 +285,7 @@ class WordbookdemoFrame(tk.Frame):
         self.search_button.place(relwidth=0.05,relx=0.825,rely=0.072)
         self.textbox.place(relwidth=0.69,relx=0.13,rely = 0.077)
         self.register_button.place(relwidth=0.1,relx=0.025,rely = 0.072)
+        self.reload_button.place(relwidth=0.1,relx=0.3,rely=0.002)
         master.title("単語一覧")
         self.tree.place_forget()
         self.tree = ttk.Treeview(self)
@@ -319,7 +306,7 @@ class WordbookdemoFrame(tk.Frame):
         self.tree.heading(5,text="タグ")
         self.tree.heading(6,text="意味")
 
-        self.tree.bind("<Double-1>",lambda event:self.gotoDescriptionFrame(event,csv_file,wordbook))
+        self.tree.bind("<Double-1>",lambda event:self.gotoWordFrame(event,master,csv_file,wordbook))
 
 
         wordlist = wordbook.get_info()
@@ -330,12 +317,15 @@ class WordbookdemoFrame(tk.Frame):
                 self.tree.insert("","end",values=(row[0],row[1],row[2],row[3],row[4],row[5][:31][:-1]+"..."))  #30文字以上の表記省略        
         self.tree.place(relwidth=0.95,relx=0.025,rely=0.11,height = 700)
 
-    def gotoDescriptionFrame(self,event,csv_file,wordbook):
+    def gotoWordFrame(self,event,master,csv_file,wordbook):
+
+        if not self.tree.selection():
+            return
+
         item = self.tree.selection()[0]
-        print(self.tree.item(item,"value")[0])
         for word in wordbook:
             if self.tree.item(item,'value')[0] == str(word.id):
-                temp = DescriptionFrameBase(csv_file,wordbook,word)
+                temp = WordFrameBase(csv_file,wordbook,word)
                 temp.update()
 
 
@@ -378,17 +368,17 @@ class RegisterwordFrame(tk.Frame):
     def __init__(self, master = None, csv_file=None, wordbook=None,**kwargs):
         tk.Frame.__init__(self,master,**kwargs)
         #ウィジェット宣言
-        self.wordbox = tk.Entry()
-        self.readbox = tk.Entry()
-        self.genrebox = tk.Entry()
-        self.taglistbox = tk.Entry()
-        self.descriptionbox = tk.Text()
-        self.wordlabel = tk.Label(text = "単語",font = ("",15))
-        self.readlabel = tk.Label(text = "読み",font = ("",15))
-        self.genrelabel = tk.Label(text = "ジャンル",font = ("",15))
-        self.taglistlabel = tk.Label(text = "タグ",font = ("",15))
-        self.taglistlabel2 = tk.Label(text = "※複数登録したい場合は半角スペースで区切る",font = ("",11))
-        self.descriptionlabel = tk.Label(text = "説明",font = ("",15))
+        self.wordbox = tk.Entry(self)
+        self.readbox = tk.Entry(self)
+        self.genrebox = tk.Entry(self)
+        self.taglistbox = tk.Entry(self)
+        self.descriptionbox = tk.Text(self)
+        self.wordlabel = tk.Label(self, text = "単語",font = ("",15))
+        self.readlabel = tk.Label(self, text = "読み",font = ("",15))
+        self.genrelabel = tk.Label(self, text = "ジャンル",font = ("",15))
+        self.taglistlabel = tk.Label(self, text = "タグ",font = ("",15))
+        self.taglistlabel2 = tk.Label(self, text = "※複数登録したい場合は半角スペースで区切る",font = ("",11))
+        self.descriptionlabel = tk.Label(self, text = "説明",font = ("",15))
         self.register_button = tk.Button(self,text = "登録",command = lambda:self.register_clicked(master,csv_file,wordbook))
         self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.change(WordbookdemoFrame,csv_file,wordbook))
 
@@ -399,6 +389,7 @@ class RegisterwordFrame(tk.Frame):
         self.descriptionbox.place(relwidth=0.5,relx=0.4,rely=0.5,height = 180)
         self.wordlabel.place(relwidth=0.1,relx=0.2,rely=0.1)
         self.readlabel.place(relwidth=0.1,relx=0.2,rely=0.2)
+
         self.genrelabel.place(relwidth=0.1,relx=0.2,rely=0.3)
         self.taglistlabel.place(relwidth=0.1,relx=0.2,rely=0.4)
         self.taglistlabel2.place(relwidth=0.3,relx=0.1,rely=0.43)
@@ -408,18 +399,24 @@ class RegisterwordFrame(tk.Frame):
 
     def register_clicked(self, master = None, csv_file = None, wordbook = None, **kwargs):
         wordbook.new_word(self.wordbox.get(),self.readbox.get(),self.genrebox.get(),self.taglistbox.get(),self.descriptionbox.get('1.0', tk.END))
-        update_csv(csv_file, wordbook, "./wordlist.csv")
+        csv_file, wordbook = update_csv(csv_file, wordbook, "./wordlist.csv")
         master.change(WordbookdemoFrame,csv_file,wordbook)
         #reload
 
-class DescriptionFrameBase(tk.Tk):
+class WordFrameBase(tk.Tk):
+
     def __init__(self,csv_file,wordbook,word):
         tk.Tk.__init__(self)
-        self.geometry("800x600")
-        self.frame = DescriptionPageFrame(self,csv_file,wordbook,word)
-        self.frame.pack(expand = True,fill="both")
+        self.geometry("1100x700")
+        self.frame = WordPageFrame(self,csv_file,wordbook,word)
+        self.frame.pack(expand = True, fill="both")
 
-class DescriptionPageFrame(tk.Frame):
+    def change(self, frame, csv_file=None, wordbook=None, word = None):
+        self.frame.pack_forget()
+        self.frame = frame(self, csv_file, wordbook, word)
+        self.frame.pack(expand = True, fill="both")
+
+class WordPageFrame(tk.Frame):
 
     def __init__(self,master = None,csv_file = None, wordbook = None, word=None):
         tk.Frame.__init__(self,master)
@@ -441,12 +438,57 @@ class DescriptionPageFrame(tk.Frame):
         self.tree.place(relwidth=0.8,relx=0.1,rely=0.1,relheight =0.08)
         self.return_button = tk.Button(self,text = "戻る", command = lambda:self.master.destroy())
         self.return_button.place(relwidth=0.35,relx=0.3,rely=0.9)
-        self.update_button = tk.Button(self,text = "更新", command = lambda:self.update(self,csv_file,wordbook,word))
-        self.update_button.place(relwidth=0.35,relx=0.3,rely=0.7)
+        self.update_button = tk.Button(self,text = "更新", command = lambda:self.gotoUpdateFrame(master,csv_file,wordbook,word))
+        self.update_button.place(relwidth=0.35,relx=0.3,rely=0.85)
 
+    def gotoUpdateFrame(self, master = None, csv_file = None, wordbook = None, word = None):
+        master.change(UpdatePageFrame,csv_file,wordbook,word)
 
-    def update(self, master = None, csv_file = None, wordbook = None, word = None):
-        wordbook.show_info()
+class UpdatePageFrame(tk.Frame):
+
+    def __init__(self,master = None, csv_file = None, wordbook = None, word = None):
+        tk.Frame.__init__(self,master)
+
+        self.wordbox = tk.Entry(self)
+        self.readbox = tk.Entry(self)
+        self.genrebox = tk.Entry(self)
+        self.taglistbox = tk.Entry(self)
+        self.descriptionbox = tk.Text(self)
+        self.wordbox.insert(tk.END,word.word)
+        self.readbox.insert(tk.END,word.read)
+        self.genrebox.insert(tk.END,word.genre)
+        self.taglistbox.insert(tk.END,word.tag_list)
+        self.descriptionbox.insert(tk.END,word.description)
+        self.wordlabel = tk.Label(self, text = "単語",font = ("",15))
+        self.readlabel = tk.Label(self, text = "読み",font = ("",15))
+        self.genrelabel = tk.Label(self, text = "ジャンル",font = ("",15))
+        self.taglistlabel = tk.Label(self, text = "タグ",font = ("",15))
+        self.taglistlabel2 = tk.Label(self, text = "※複数登録したい場合は半角スペースで区切る",font = ("",11))
+        self.descriptionlabel = tk.Label(self, text = "説明",font = ("",15))
+        self.update_button = tk.Button(self,text = "更新", command = lambda:self.update(master,csv_file,wordbook,word))
+        self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.change(WordPageFrame,csv_file,wordbook,word))
+
+        self.wordbox.place(relwidth=0.5,relx=0.4,rely=0.1)
+        self.readbox.place(relwidth=0.5,relx=0.4,rely=0.2)
+        self.genrebox.place(relwidth=0.5,relx=0.4,rely=0.3)
+        self.taglistbox.place(relwidth=0.5,relx=0.4,rely=0.4)
+        self.descriptionbox.place(relwidth=0.5,relx=0.4,rely=0.5,height = 180)
+        self.wordlabel.place(relwidth=0.1,relx=0.2,rely=0.1)
+        self.readlabel.place(relwidth=0.1,relx=0.2,rely=0.2)
+        self.genrelabel.place(relwidth=0.1,relx=0.2,rely=0.3)
+        self.taglistlabel.place(relwidth=0.1,relx=0.2,rely=0.4)
+        self.taglistlabel2.place(relwidth=0.3,relx=0.1,rely=0.43)
+        self.descriptionlabel.place(relwidth=0.1,relx=0.2,rely=0.5)
+        self.return_button.place(relwidth=0.35,relx=0.3,rely=0.9)
+        self.update_button.place(relwidth=0.35,relx=0.3,rely=0.85)
+
+    def update(self, master, csv_file, wordbook, word):
+        wordbook.update_word(word.id,self.wordbox.get(),self.readbox.get(),self.genrebox.get(),self.taglistbox.get(),self.descriptionbox.get('1.0', tk.END))
+        update_csv(csv_file, wordbook, "./wordlist.csv")
+        word = Word(word.id, self.wordbox.get(), self.readbox.get(), self.genrebox.get(), self.taglistbox.get(), self.descriptionbox.get('1.0', tk.END),proc_flag = 0)
+#        master.change(WordPageFrame,csv_file,wordbook,word)
+        master.destroy()
+
 
 root = FrameBase()
 root.mainloop()
