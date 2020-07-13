@@ -213,6 +213,9 @@ def read_csv_clear_wordbook(csv_name):
 
 #GUI作っていこう
 
+#global
+my_color = "snow"
+
 class FrameBase(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
@@ -235,15 +238,16 @@ class StartPageFrame(tk.Frame):
     def __init__(self,master = None, csv_file = None, wordbook = None,**kwargs):
 
         tk.Frame.__init__(self,master,**kwargs)
-        master.title("単語帳アプリ")
+        master.title("単語帳")
+        self.configure(bg=my_color)
 
-        title_label = tk.Label(self,text = "単語帳",font = ("Meiryo UI",80))
+        title_label = tk.Label(self,text = "単語帳",font = ("Meiryo UI",80),bg=my_color)
         title_label.place(relwidth=0.5,relheight = 0.4,relx=0.25,rely=0.2)
-        start_button = tk.Button(self,text = "単語帳を選択してスタート", font = ("Meiryo UI",9), command = self.start_clicked)
+        start_button = tk.Button(self,text = "単語帳を選択してスタート", font = ("Meiryo UI",9), command = self.start_clicked,bg=my_color)
         start_button.place(relwidth=0.3,relx=0.35,rely=0.55)
-        start_button2 = tk.Button(self,text = "デモ単語帳でスタート", font = ("Meiryo UI",9), command = self.start_clicked_demo)
+        start_button2 = tk.Button(self,text = "デモ単語帳でスタート", font = ("Meiryo UI",9), command = self.start_clicked_demo,bg=my_color)
         start_button2.place(relwidth=0.3, relx = 0.35, rely = 0.6)
-        fin_button = tk.Button(self,text = "画面を閉じて終了", font = ("Meiryo UI",9), command = self.fin_clicked)
+        fin_button = tk.Button(self,text = "画面を閉じて終了", font = ("Meiryo UI",9), command = self.fin_clicked,bg=my_color)
         fin_button.place(relwidth=0.3,relx=0.35,rely=0.65)
 
     def start_clicked(self):
@@ -261,16 +265,18 @@ class StartPageFrame(tk.Frame):
 class WordbookdemoFrame(tk.Frame):
 
     def __init__(self, master = None, csv_file=None, wordbook=None,**kwargs):
+
         tk.Frame.__init__(self,master,**kwargs)
-        #ウィジェット宣言
+
+        self.configure(bg=my_color)
         self.my_font = font.Font(master,family="Meiryo UI",size = 9)
-        self.apimagecanvas = tk.Canvas(self,width=140,height=50)
+        self.apimagecanvas = tk.Canvas(self,width=140,height=50,bg=my_color)
         self.apimage = tk.PhotoImage(file="./image/logo.png")
         self.tree = ttk.Treeview(self)
-        self.search_button = tk.Button(self,text = "検索",font = self.my_font, command = lambda:self.search(master,csv_file, wordbook))
-        self.return_button = tk.Button(self,text = "戻る",font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook))
-        self.reload_button = tk.Button(self, text = "再読み込み", font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook))
-        self.register_button = tk.Button(self,text = "新規単語登録",font = self.my_font, command = self.register_clicked)
+        self.search_button = tk.Button(self,text = "検索",font = self.my_font, command = lambda:self.search(master,csv_file, wordbook),bg=my_color)
+        self.return_button = tk.Button(self,text = "戻る",font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook),bg=my_color)
+        self.reload_button = tk.Button(self, text = "再読み込み", font = self.my_font, command = lambda:self.reload(master,csv_file,wordbook),bg=my_color)
+        self.register_button = tk.Button(self,text = "新規単語登録",font = self.my_font, command = self.register_clicked,bg=my_color)
         self.textbox = tk.Entry(font = self.my_font)
         #reload
         self.reload(master,csv_file,wordbook)
@@ -368,19 +374,20 @@ class RegisterwordFrame(tk.Frame):
     def __init__(self, master = None, csv_file=None, wordbook=None,**kwargs):
         tk.Frame.__init__(self,master,**kwargs)
         #ウィジェット宣言
+        self.configure(bg=my_color)
         self.wordbox = tk.Entry(self)
         self.readbox = tk.Entry(self)
         self.genrebox = tk.Entry(self)
         self.taglistbox = tk.Entry(self)
         self.descriptionbox = tk.Text(self)
-        self.wordlabel = tk.Label(self, text = "単語",font = ("",15))
-        self.readlabel = tk.Label(self, text = "読み",font = ("",15))
-        self.genrelabel = tk.Label(self, text = "ジャンル",font = ("",15))
-        self.taglistlabel = tk.Label(self, text = "タグ",font = ("",15))
-        self.taglistlabel2 = tk.Label(self, text = "※複数登録したい場合は半角スペースで区切る",font = ("",11))
-        self.descriptionlabel = tk.Label(self, text = "説明",font = ("",15))
-        self.register_button = tk.Button(self,text = "登録",command = lambda:self.register_clicked(master,csv_file,wordbook))
-        self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.change(WordbookdemoFrame,csv_file,wordbook))
+        self.wordlabel = tk.Label(self, text = "単語",font = ("Meiryo UI",15),bg=my_color)
+        self.readlabel = tk.Label(self, text = "読み",font = ("Meiryo UI",15),bg=my_color)
+        self.genrelabel = tk.Label(self, text = "ジャンル",font = ("Meiryo UI",15),bg=my_color)
+        self.taglistlabel = tk.Label(self, text = "タグ",font = ("Meiryo UI",15),bg=my_color)
+        self.taglistlabel2 = tk.Label(self, text = "※複数登録したい場合は半角スペースで区切る",font = ("Meiryo UI",11),bg=my_color)
+        self.descriptionlabel = tk.Label(self, text = "説明",font = ("Meiryo UI",15),bg=my_color)
+        self.register_button = tk.Button(self,text = "登録",command = lambda:self.register_clicked(master,csv_file,wordbook),bg=my_color)
+        self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.change(WordbookdemoFrame,csv_file,wordbook),bg=my_color)
 
         self.wordbox.place(relwidth=0.5,relx=0.4,rely=0.1)
         self.readbox.place(relwidth=0.5,relx=0.4,rely=0.2)
@@ -410,6 +417,7 @@ class WordFrameBase(tk.Tk):
         self.geometry("1100x700")
         self.frame = WordPageFrame(self,csv_file,wordbook,word)
         self.frame.pack(expand = True, fill="both")
+#        self.wm_attributes("-transparentcolor", "green")
 
     def change(self, frame, csv_file=None, wordbook=None, word = None):
         self.frame.pack_forget()
@@ -420,29 +428,41 @@ class WordPageFrame(tk.Frame):
 
     def __init__(self,master = None,csv_file = None, wordbook = None, word=None):
         tk.Frame.__init__(self,master)
-        self.tree = ttk.Treeview(self)
-        self.tree["columns"]=(1,2,3,4,5)
-        self.tree["show"]="headings"
-        self.tree.column(1,width=50)
-        self.tree.column(2,width=150)
-        self.tree.column(3,width=150)
-        self.tree.column(4,width=200)
-        self.tree.column(5,width=200)
 
-        self.tree.heading(1,text="ID")
-        self.tree.heading(2,text="単語")
-        self.tree.heading(3,text="読み")
-        self.tree.heading(4,text="ジャンル")
-        self.tree.heading(5,text="タグ")
-        self.tree.insert("","end",values=(word.id,word.word,word.read,word.genre,word.tag_list))
-        self.tree.place(relwidth=0.8,relx=0.1,rely=0.1,relheight =0.08)
-        self.return_button = tk.Button(self,text = "戻る", command = lambda:self.master.destroy())
-        self.return_button.place(relwidth=0.35,relx=0.3,rely=0.9)
+        self.canvas = tk.Canvas(self,width=1100,height=700,bg="snow")
+        self.canvas.place(x=0, y=0)
+        self.canvas.create_line(113,147,113,136,102,136,102,147,109,147,109,140,102,140,102,147,989,147,fill="gray60")
+        self.canvas.create_line(116,180,116,173,109,173,109,180,389,180,fill="gray60")
+        self.canvas.create_line(116,220,116,213,109,213,109,220,589,220,fill="gray60")
+        self.canvas.create_line(116,260,116,253,109,253,109,260,589,260,fill="gray60")
+        self.canvas.create_rectangle(102, 300, 989, 570, fill = "ghost white")#塗りつぶし
+
         self.update_button = tk.Button(self,text = "更新", command = lambda:self.gotoUpdateFrame(master,csv_file,wordbook,word))
-        self.update_button.place(relwidth=0.35,relx=0.3,rely=0.85)
+        self.return_button = tk.Button(self,text = "戻る",command = lambda:self.master.destroy())
 
+        self.wordlabel = tk.Label(self, text = word.word,font = ("Meiryo UI",40),anchor="w",bg="snow")# """green""")
+        self.readlabel = tk.Label(self, text = word.read,font = ("Meiryo UI",13),anchor="w",bg="snow")
+        self.readlabel2 = tk.Label(self, text = "【読み】：",font = ("Meiryo UI",13),anchor="e",bg="snow")
+        self.genrelabel = tk.Label(self, text = word.genre,font = ("Meiryo UI",13),anchor="w",bg="snow")
+        self.genrelabel2 = tk.Label(self, text = "【ジャンル】：",font = ("Meiryo UI",13),anchor="e",bg="snow")
+        self.taglistlabel = tk.Label(self, text = word.tag_list,font = ("Meiryo UI",13),anchor="w",bg="snow")
+        self.taglistlabel2 = tk.Label(self, text = "【タグ】：",font = ("Meiryo UI",13),anchor="e",bg="snow")
+        self.descriptionlabel = tk.Label(self, text = word.description,font = ("Meiryo UI",13),anchor="w",bg="ghost white")
+        self.wordlabel.place(relwidth=0.8,x=120,y=74)
+        self.readlabel.place(relwidth=0.7,x=220,y=152)
+        self.readlabel2.place(width=100,x=120,y=152)
+        self.genrelabel.place(relwidth=0.7,x=220,y=192)
+        self.genrelabel2.place(width=100,x=120,y=192)
+        self.taglistlabel.place(relwidth=0.7,x=220,y=232)
+        self.taglistlabel2.place(width=100,x=120,y=232)
+        self.descriptionlabel.place(width=880,x=105,y=305)
+
+        self.update_button.place(width=120,x=110,y=600)
+        self.return_button.place(width=120,x=870,y=600)
+        
     def gotoUpdateFrame(self, master = None, csv_file = None, wordbook = None, word = None):
         master.change(UpdatePageFrame,csv_file,wordbook,word)
+
 
 class UpdatePageFrame(tk.Frame):
 
